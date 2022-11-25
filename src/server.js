@@ -85,6 +85,8 @@ const pathToRoute = (path) => {
     }
     else if (parsed.name.startsWith("[") && parsed.name.endsWith("]")) {
         route.url = `${parsed.dir}/:${parsed.name.slice(1, parsed.name.length - 1)}`
+    } else {
+        route.url = `/${parsed.name}`
     }
 
     return route
