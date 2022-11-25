@@ -1,7 +1,7 @@
 {
   "name": "statikly",
-  "version": "10.0.2",
-  "description": "",
+  "version": "0.0.3",
+  "description": "No hassle server side ui",
   "main": "src/server.js",
   "bin": {
     "statikly": "src/server.js"
@@ -24,5 +24,14 @@
     "glob": "^8.0.3",
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niradler/statikly.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niradler/statikly/issues"
+  },
+  "homepage": "https://github.com/niradler/statikly#readme"
 }
