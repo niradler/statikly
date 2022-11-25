@@ -21,7 +21,7 @@ api/note/[id].js => api/note/:id
 
 # Getting Started
 
-Write your first view, create views/index.js and run statikly
+Write your first view, create views/index.ejs and run statikly
 
 ```ejs
 <!DOCTYPE html>
@@ -43,4 +43,25 @@ Write your first view, create views/index.js and run statikly
     <h1><%= "env" %></h1>
     <h3><%= JSON.stringify(env,null,2); %></h3>
   </body>
+```
+
+Passing server side data to views, create views/loader.js and run statikly
+
+```js
+module.exports = {
+  handler: async (req) => [{ id: 1, title: "note1" }],
+};
+```
+
+Api routes, create api/notes.js and run statikly
+
+```js
+module.exports = {
+  get: async (req, res) => [{ id: 1, title: "note1" }],
+  post: async (req, res) => [{ id: 1, title: "note1" }],
+};
+```
+
+```sh
+curl http://localhost:3000/api/notes
 ```
