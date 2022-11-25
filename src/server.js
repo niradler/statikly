@@ -1,16 +1,18 @@
+#!/usr/bin/env node
 require('dotenv').config()
 const Fastify = require("fastify");
 const pathUtils = require("path");
 const fs = require("fs/promises");
 const glob = require("glob")
 
+const isProd = process.env.NODE_ENV === 'production'
 const rootDir = process.env.STATIKLY_ROOT || process.cwd();
 const staticDir = process.env.STATIKLY_STATIC_FOLDER || "public";
 const templateEngine = process.env.STATIKLY_TEMPLATE || "ejs";
 const layout = process.env.STATIKLY_LAYOUT;
 const viewsDir = process.env.STATIKLY_VIEWS || "views";
 const apiDir = "api";
-const logOptions = {
+const logOptions = !isProd ? {
     transport: {
         target: 'pino-pretty',
         options: {
@@ -18,10 +20,11 @@ const logOptions = {
             ignore: 'pid,hostname',
         },
     },
-}
+} : true;
 
 const fastify = Fastify({ logger: logOptions });
 
+if (!isProd) fastify.register(require('fastify-error-page'))
 fastify.register(require('@fastify/routes'))
 fastify.register(require("@fastify/helmet"));
 fastify.register(require("@fastify/static"), {
@@ -129,6 +132,8 @@ const start = async () => {
 
             }
         }
+        await fastify.ready()
+        if (!isProd) console.log(fastify.routes)
         await fastify.listen({ port: process.env.PORT || 3000 })
     } catch (err) {
         fastify.log.error(err);
