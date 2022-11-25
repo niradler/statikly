@@ -1,0 +1,28 @@
+{
+  "name": "statikly",
+  "version": "10.0.2",
+  "description": "",
+  "main": "src/server.js",
+  "bin": {
+    "statikly": "src/server.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Nir Adler",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/basic-auth": "^4.0.0",
+    "@fastify/helmet": "^10.1.0",
+    "@fastify/routes": "^5.0.0",
+    "@fastify/static": "^6.5.1",
+    "@fastify/view": "^7.3.0",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.8",
+    "fastify": "^4.10.2",
+    "glob": "^8.0.3",
+    "pino": "^8.7.0",
+    "pino-pretty": "^9.1.1"
+  }
+}
