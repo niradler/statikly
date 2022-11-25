@@ -24,9 +24,9 @@ const logOptions = !isProd ? {
 
 const fastify = Fastify({ logger: logOptions });
 
-if (!isProd) fastify.register(require('fastify-error-page'))
 fastify.register(require('@fastify/routes'))
 fastify.register(require("@fastify/helmet"));
+fastify.register(require('@fastify/formbody'))
 fastify.register(require("@fastify/static"), {
     root: pathUtils.join(rootDir, staticDir),
     prefix: `/${staticDir}/`,
@@ -132,8 +132,9 @@ const start = async () => {
 
             }
         }
+
         await fastify.ready()
-        if (!isProd) console.log(fastify.routes)
+        if (!isProd) fastify.log.debug("routes", fastify.routes.keys())
         await fastify.listen({ port: process.env.PORT || 3000 })
     } catch (err) {
         fastify.log.error(err);

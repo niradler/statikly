@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/basic-auth": "^4.0.0",
+    "@fastify/formbody": "^7.3.0",
     "@fastify/helmet": "^10.1.0",
     "@fastify/routes": "^5.0.0",
     "@fastify/static": "^6.5.1",
@@ -26,7 +27,6 @@
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "fastify": "^4.10.2",
-    "fastify-error-page": "^4.0.0",
     "glob": "^8.0.3",
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1"
