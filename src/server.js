@@ -1,10 +1,11 @@
-#!/usr/bin/env node
 require('dotenv').config()
 const Fastify = require("fastify");
 const pathUtils = require("path");
 const fs = require("fs/promises");
-const glob = require("glob")
+const { getFiles, pathNormalize, pathToRoute } = require("./utils")
 
+const password = process.env.STATIKLY_PASSWORD
+const username = process.env.STATIKLY_USERNAME
 const isProd = process.env.NODE_ENV === 'production'
 const rootDir = process.env.STATIKLY_ROOT || process.cwd();
 const staticDir = process.env.STATIKLY_STATIC_FOLDER || "public";
@@ -23,26 +24,6 @@ const logOptions = !isProd ? {
 } : true;
 
 const fastify = Fastify({ logger: logOptions });
-
-fastify.register(require('@fastify/routes'))
-fastify.register(require("@fastify/helmet"));
-fastify.register(require('@fastify/formbody'))
-fastify.register(require("@fastify/static"), {
-    root: pathUtils.join(rootDir, staticDir),
-    prefix: `/${staticDir}/`,
-});
-fastify.register(require("@fastify/view"), {
-    engine: {
-        [templateEngine]: require(templateEngine),
-    },
-    root: rootDir,
-    layout: layout ? pathUtils.join(rootDir, layout) : undefined,
-    propertyName: templateEngine,
-    defaultContext: {
-        env: process.env,
-    },
-    options: {},
-});
 
 const registerViewRoute = ({ url, viewPath, loader }) => {
     fastify.route({
@@ -64,38 +45,39 @@ const registerViewRoute = ({ url, viewPath, loader }) => {
     });
 }
 
-
-const getFiles = (pattern) => {
-
-    return new Promise((resolve, reject) => {
-        glob(pattern, function (er, files) {
-            if (er) reject(er)
-            else resolve(files)
-        })
-    })
-}
-
-const pathNormalize = (path) => {
-    return path.replace(/\\/ig, "/")
-
-}
-const pathToRoute = (path) => {
-    const parsed = pathUtils.parse(path)
-    const route = parsed
-    if (parsed.name === 'index') {
-        route.url = parsed.dir
-
-    }
-    else if (parsed.name.startsWith("[") && parsed.name.endsWith("]")) {
-        route.url = `${parsed.dir}/:${parsed.name.slice(1, parsed.name.length - 1)}`
-    } else {
-        route.url = `/${parsed.name}`
-    }
-
-    return route
-}
-const start = async () => {
+const server = async (options = {}) => {
     try {
+        const port = process.env.PORT || options.port || 3000
+        await fastify.register(require('@fastify/routes'))
+        await fastify.register(require("@fastify/helmet"));
+        await fastify.register(require('@fastify/formbody'))
+        await fastify.register(require("@fastify/static"), {
+            root: pathUtils.join(rootDir, staticDir),
+            prefix: `/${staticDir}/`,
+        });
+        await fastify.register(require("@fastify/view"), {
+            engine: {
+                [templateEngine]: require(templateEngine),
+            },
+            root: rootDir,
+            layout: layout ? pathUtils.join(rootDir, layout) : undefined,
+            propertyName: templateEngine,
+            defaultContext: {
+                env: process.env,
+            },
+            options: {},
+        });
+        if (username && password) {
+            const authenticate = { realm: 'statikly' }
+            async function validate(usernameInput, passwordInput, req, reply) {
+                if (username !== usernameInput || password !== passwordInput) {
+                    return new Error('Unauthorized')
+                }
+            }
+            await fastify.register(require('@fastify/basic-auth'), { validate, authenticate })
+            fastify.addHook('onRequest', fastify.basicAuth)
+
+        }
 
         const hasViews = await fs.stat(pathUtils.join(rootDir, viewsDir)).catch(e => false)
         if (hasViews) {
@@ -135,11 +117,11 @@ const start = async () => {
 
         await fastify.ready()
         if (!isProd) fastify.log.debug("routes", fastify.routes.keys())
-        await fastify.listen({ port: process.env.PORT || 3000 })
+        await fastify.listen({ port })
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);
     }
 };
 
-start();
+module.exports = server

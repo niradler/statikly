@@ -4,9 +4,22 @@
 npm i -g statikly
 ```
 
+environment variables:
+
+```sh
+NODE_ENV=production # optional: set in production
+STATIKLY_ROOT= # optional: set to override current folder
+STATIKLY_STATIC_FOLDER=public # optional: for other public folder
+STATIKLY_TEMPLATE=ejs # optional: template engine to use for the complete list @fastify/view
+STATIKLY_LAYOUT= # optional: layout path
+STATIKLY_VIEWS=views # optional: for other views folder
+STATIKLY_PASSWORD=1234 # optional: basic auth
+STATIKLY_USERNAME=user # optional: basic auth
+```
+
 defaults:
 
-- template engine ejs
+- template engine ejs ()
 - views folder = views
 - api folder = api
 - public folder = public
