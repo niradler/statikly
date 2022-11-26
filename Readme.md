@@ -1,5 +1,12 @@
 # statikly
 
+No hassle full stack framework, for blog/static/content sites, amazing for prototype and build internal tools and seo optimize.
+Provide alternative for writing frontend "the old way", more and more heap is growing on server side ui, like next.js and remix, I wanted to simplified it event more.
+
+statikly is just an opinionated warpper around [fastify](https://www.fastify.io/) (ecosystem)[https://www.fastify.io/ecosystem/].
+
+when your app is growing you can always eject and control everting yourself.
+
 ```js
 npm i -g statikly
 ```
@@ -70,11 +77,18 @@ Api routes, create api/notes.js and run statikly
 
 ```js
 module.exports = {
-  get: async (req, res) => [{ id: 1, title: "note1" }],
-  post: async (req, res) => [{ id: 1, title: "note1" }],
+  get: async (req, reply) => [{ id: 1, title: "note1" }],
+  post: async (req, reply) => [{ id: 1, title: "note1" }],
 };
 ```
 
 ```sh
 curl http://localhost:3000/api/notes
 ```
+
+Build on top of [fastify](https://www.fastify.io/), so fo more information, have a look at the [fastify docs](https://www.fastify.io/docs/latest/)
+
+Recommended reading:
+
+- (Request)[https://www.fastify.io/docs/latest/Reference/Request/]
+- (Reply)[https://www.fastify.io/docs/latest/Reference/Reply/]

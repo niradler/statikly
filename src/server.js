@@ -39,7 +39,7 @@ const registerViewRoute = ({ url, viewPath, loader }) => {
         },
         preHandler: async (req, reply, done) => {
             if (loader.handler) {
-                const data = await loader.handler(req, reply)
+                const data = await loader.handler(req, reply, done)
                 req.actionData = data;
             }
         },

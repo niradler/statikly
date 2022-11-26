@@ -1,6 +1,6 @@
 {
   "name": "statikly",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "No hassle full stack framework",
   "main": "src/index.js",
   "bin": {
