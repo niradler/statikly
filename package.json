@@ -1,8 +1,8 @@
 {
   "name": "statikly",
   "version": "0.0.4",
-  "description": "No hassle server side ui",
-  "main": "src/server.js",
+  "description": "No hassle full stack framework",
+  "main": "src/index.js",
   "bin": {
     "statikly": "src/statikly.js"
   },

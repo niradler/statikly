@@ -10,7 +10,7 @@ const isProd = process.env.NODE_ENV === 'production'
 const rootDir = toFilePath(process.env.STATIKLY_ROOT) || process.cwd();
 const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath("./public", rootDir);
 const templateEngine = process.env.STATIKLY_TEMPLATE || "ejs";
-const layout = toFilePath(process.env.STATIKLY_LAYOUT, rootDir);
+const layout = process.env.STATIKLY_LAYOUT;
 const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath("./views", rootDir);
 const apiDir = toFilePath("./api", rootDir);;
 const logOptions = !isProd ? {
@@ -26,6 +26,7 @@ const logOptions = !isProd ? {
 const fastify = Fastify({ logger: logOptions });
 
 const registerViewRoute = ({ url, viewPath, loader }) => {
+    const viewOption = loader.viewOption ? loader.viewOption : {}
     fastify.route({
         method: "GET",
         url,
@@ -34,10 +35,10 @@ const registerViewRoute = ({ url, viewPath, loader }) => {
                 query: req.query,
                 params: req.params,
                 data: req.actionData
-            });
+            }, viewOption);
         },
         preHandler: async (req, reply, done) => {
-            if (loader) {
+            if (loader.handler) {
                 const data = await loader.handler(req, reply)
                 req.actionData = data;
             }
@@ -60,7 +61,7 @@ const server = async (options = {}) => {
                 [templateEngine]: require(templateEngine),
             },
             root: rootDir,
-            layout: layout ? pathUtils.join(rootDir, layout) : undefined,
+            layout: layout ? layout : undefined,
             propertyName: templateEngine,
             defaultContext: {
                 env: process.env,
