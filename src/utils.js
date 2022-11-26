@@ -1,9 +1,7 @@
 const pathUtils = require("path");
-const fs = require("fs/promises");
 const glob = require("glob")
 
 const getFiles = (pattern) => {
-
     return new Promise((resolve, reject) => {
         glob(pattern, function (er, files) {
             if (er) reject(er)
@@ -14,8 +12,8 @@ const getFiles = (pattern) => {
 
 const pathNormalize = (path) => {
     return path.replace(/\\/ig, "/")
-
 }
+
 const pathToRoute = (path) => {
     const parsed = pathUtils.parse(path)
     const route = parsed
@@ -31,4 +29,10 @@ const pathToRoute = (path) => {
 
     return route
 }
-module.exports = { getFiles, pathNormalize, pathToRoute }
+
+const toFilePath = (path, root = process.cwd()) => {
+    if (!path) return
+    return pathUtils.isAbsolute(path) ? path : pathUtils.join(root, path)
+}
+
+module.exports = { getFiles, pathNormalize, pathToRoute, toFilePath }
