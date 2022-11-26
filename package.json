@@ -4,7 +4,7 @@
   "description": "No hassle server side ui",
   "main": "src/server.js",
   "bin": {
-    "statikly": "src/cli.js"
+    "statikly": "src/statikly.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
