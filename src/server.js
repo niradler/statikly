@@ -4,59 +4,61 @@ const pathUtils = require("path");
 const fs = require("fs/promises");
 const { toFilePath, getFiles, pathNormalize, pathToRoute } = require("./utils")
 
-const password = process.env.STATIKLY_PASSWORD
-const username = process.env.STATIKLY_USERNAME
-const isProd = process.env.NODE_ENV === 'production'
-const rootDir = toFilePath(process.env.STATIKLY_ROOT) || process.cwd();
-const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath("./public", rootDir);
-const templateEngine = process.env.STATIKLY_TEMPLATE || "ejs";
-const layout = process.env.STATIKLY_LAYOUT;
-const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath("./views", rootDir);
-const apiDir = toFilePath("./api", rootDir);;
-const logOptions = !isProd ? {
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname',
-        },
-    },
-} : true;
-
-const fastify = Fastify({ logger: logOptions });
-
-const registerViewRoute = ({ url, viewPath, loader }) => {
-    const viewOption = loader.viewOption ? loader.viewOption : {}
-    fastify.route({
-        method: "GET",
-        url,
-        handler: (req, reply) => {
-            return reply.ejs(viewPath, {
-                query: req.query,
-                params: req.params,
-                data: req.actionData
-            }, viewOption);
-        },
-        preHandler: async (req, reply, done) => {
-            if (loader.handler) {
-                const data = await loader.handler(req, reply, done)
-                req.actionData = data;
-            }
-        },
-    });
-}
-
 const server = async (options = {}) => {
     try {
         const port = process.env.PORT || options.port || 3000
-        await fastify.register(require('@fastify/routes'))
-        await fastify.register(require("@fastify/helmet"));
-        await fastify.register(require('@fastify/formbody'))
-        await fastify.register(require("@fastify/static"), {
+        const password = options.password || process.env.STATIKLY_PASSWORD
+        const username = options.username || process.env.STATIKLY_USERNAME
+        const isProd = process.env.NODE_ENV === 'production'
+        const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
+        const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath(options.publicDir, rootDir) || toFilePath("./public", rootDir);
+        const templateEngine = process.env.STATIKLY_TEMPLATE || options.templateEngine || "ejs";
+        const layout = options.layout || process.env.STATIKLY_LAYOUT; //relative to root
+        const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath("./views", rootDir);
+        const apiDir = toFilePath(options.apiDir, rootDir) || toFilePath("./api", rootDir);
+        const viewOptions = options.viewOptions || {}
+        const logOptions = !isProd ? {
+            transport: {
+                target: 'pino-pretty',
+                options: {
+                    translateTime: 'HH:MM:ss Z',
+                    ignore: 'pid,hostname',
+                },
+            },
+        } : true;
+
+        const app = options.app || Fastify({ logger: logOptions });
+
+        const registerViewRoute = ({ url, viewPath, loader }) => {
+            const viewOption = loader.viewOption ? loader.viewOption : {}
+            app.route({
+                method: "GET",
+                url,
+                handler: (req, reply) => {
+                    return reply.ejs(viewPath, {
+                        query: req.query,
+                        params: req.params,
+                        data: req.actionData
+                    }, viewOption);
+                },
+                preHandler: async (req, reply, done) => {
+                    if (loader.handler) {
+                        const data = await loader.handler(req, reply, done)
+                        req.actionData = data;
+                    }
+                },
+            });
+        }
+
+        await app.register(require('@fastify/routes'))
+        await app.register(require('@fastify/sensible'))
+        await app.register(require("@fastify/helmet"));
+        await app.register(require('@fastify/formbody'))
+        await app.register(require("@fastify/static"), {
             root: publicDir,
             prefix: `/public/`,
         });
-        await fastify.register(require("@fastify/view"), {
+        await app.register(require("@fastify/view"), {
             engine: {
                 [templateEngine]: require(templateEngine),
             },
@@ -66,7 +68,7 @@ const server = async (options = {}) => {
             defaultContext: {
                 env: process.env,
             },
-            options: {},
+            options: viewOptions,
         });
 
         if (username && password) {
@@ -76,8 +78,8 @@ const server = async (options = {}) => {
                     return new Error('Unauthorized')
                 }
             }
-            await fastify.register(require('@fastify/basic-auth'), { validate, authenticate })
-            fastify.addHook('onRequest', fastify.basicAuth)
+            await app.register(require('@fastify/basic-auth'), { validate, authenticate })
+            app.addHook('onRequest', app.basicAuth)
         }
 
         const hasViews = await fs.stat(viewsDir).catch(e => false)
@@ -102,7 +104,7 @@ const server = async (options = {}) => {
                 const parsed = pathToRoute(apiFile.replace(pathNormalize(apiDir), ""))
                 const controller = require(apiFile)
                 const methods = ["head", "post", "put", "delete", "options", "patch", "get"]
-                await fastify.register(function (fastify, _, done) {
+                await app.register(function (fastify, _, done) {
                     methods.forEach(method => {
                         if (controller[method]) {
                             fastify[method](parsed.url, controller[method])
@@ -114,11 +116,11 @@ const server = async (options = {}) => {
             }
         }
 
-        await fastify.ready()
-        if (!isProd) fastify.log.debug("routes", fastify.routes.keys())
-        await fastify.listen({ port })
+        await app.ready()
+        if (!isProd) app.log.debug("routes", app.routes.keys())
+        await app.listen({ port })
     } catch (err) {
-        fastify.log.error(err);
+        app.log.error(err);
         process.exit(1);
     }
 };

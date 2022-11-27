@@ -10,6 +10,38 @@ argv = yargs(hideBin(process.argv))
                 describe: 'port to bind on',
                 default: 3000
             })
+            .option('username', {
+                describe: 'basic auth username',
+                default: undefined
+            })
+            .option('password', {
+                describe: 'basic auth password',
+                default: undefined
+            })
+            .option('rootDir', {
+                describe: 'root directory',
+                default: process.cwd()
+            })
+            .option('publicDir', {
+                describe: 'public directory',
+                default: "./public"
+            })
+            .option('templateEngine', {
+                describe: 'template engine',
+                default: 'ejs'
+            })
+            .option('viewsDir', {
+                describe: 'views directory',
+                default: "./views"
+            })
+            .option('layout', {
+                describe: 'template engine',
+                default: undefined
+            })
+            .option('apiDir', {
+                describe: 'api directory',
+                default: './api'
+            })
     }, (argv) => {
         if (argv.verbose) console.info(`start server on :${argv.port}`)
         server(argv)
