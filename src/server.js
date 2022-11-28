@@ -73,6 +73,7 @@ const server = async (options = {}) => {
             propertyName: templateEngine,
             defaultContext: {
                 env: process.env,
+                fromRoot: (path) => toFilePath(path, rootDir)
             },
             options: viewOptions,
         });
