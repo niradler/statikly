@@ -42,6 +42,10 @@ argv = yargs(hideBin(process.argv))
                 describe: 'api directory',
                 default: './api'
             })
+            .option('prod', {
+                describe: 'production mode',
+                default: false
+            })
     }, (argv) => {
         if (argv.verbose) console.info(`start server on :${argv.port}`)
         server(argv)

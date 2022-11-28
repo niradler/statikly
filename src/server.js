@@ -4,12 +4,15 @@ const pathUtils = require("path");
 const fs = require("fs/promises");
 const { toFilePath, getFiles, pathNormalize, pathToRoute } = require("./utils")
 
+const generateSecret = (length) => new Array(length).fill(0).map(() => Math.floor(Math.random() * 10)).join()
+
 const server = async (options = {}) => {
     try {
         const port = process.env.PORT || options.port || 3000
         const password = options.password || process.env.STATIKLY_PASSWORD
         const username = options.username || process.env.STATIKLY_USERNAME
-        const isProd = process.env.NODE_ENV === 'production'
+        const isProd = options.prod || process.env.NODE_ENV === 'production'
+        const sessionSecret = options.sessionSecret || process.env.STATIKLY_SESSION_SECRET || isProd ? "" : generateSecret(32)
         const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
         const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath(options.publicDir, rootDir) || toFilePath("./public", rootDir);
         const templateEngine = process.env.STATIKLY_TEMPLATE || options.templateEngine || "ejs";
@@ -49,8 +52,11 @@ const server = async (options = {}) => {
                 },
             });
         }
-
+        await app.register(require('@fastify/cors'), {})
         await app.register(require('@fastify/routes'))
+        await app.register(require('@fastify/cookie'))
+        await app.register(require('@fastify/session'), { secret: sessionSecret, cookie: { secure: 'auto' } })
+        await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } })
         await app.register(require('@fastify/sensible'))
         await app.register(require("@fastify/helmet"));
         await app.register(require('@fastify/formbody'))
@@ -120,7 +126,7 @@ const server = async (options = {}) => {
         if (!isProd) app.log.debug("routes", app.routes.keys())
         await app.listen({ port })
     } catch (err) {
-        app.log.error(err);
+        console.error(err);
         process.exit(1);
     }
 };
