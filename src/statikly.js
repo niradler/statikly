@@ -1,9 +1,21 @@
 #!/usr/bin/env node
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
+const degit = require('degit');
 const server = require("./server")
 
 argv = yargs(hideBin(process.argv))
+    .command('init', 'initialize example project', (yargs) => {
+    }, (options) => {
+        if (options.verbose) console.info(options)
+        const emitter = degit('niradler/statikly-demo', {
+            force: true,
+            verbose: options.verbose,
+        });
+        emitter.clone(process.cwd()).then(() => {
+            console.log('All set, start by running npm run serve');
+        });
+    })
     .command('serve', 'start the server', (yargs) => {
         return yargs
             .option('port', {
@@ -44,11 +56,12 @@ argv = yargs(hideBin(process.argv))
             })
             .option('prod', {
                 describe: 'production mode',
+                type: 'boolean',
                 default: false
             })
-    }, (argv) => {
-        if (argv.verbose) console.info(`start server on :${argv.port}`)
-        server(argv)
+    }, (options) => {
+        if (options.verbose) console.info(options)
+        server(options)
     })
     .demandCommand(1, '')
     .recommendCommands()

@@ -58,6 +58,7 @@ const server = async (options = {}) => {
         await app.register(require('@fastify/session'), { secret: sessionSecret, cookie: { secure: 'auto' } })
         // await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } })
         await app.register(require('@fastify/sensible'))
+        await app.register(require('@fastify/flash'))
         await app.register(require("@fastify/helmet"));
         await app.register(require('@fastify/formbody'))
         await app.register(require("@fastify/static"), {

@@ -92,3 +92,12 @@ Recommended reading:
 
 - (Request)[https://www.fastify.io/docs/latest/Reference/Request/]
 - (Reply)[https://www.fastify.io/docs/latest/Reference/Reply/]
+
+TODO:
+
+- support route options for api and views
+- csrf
+- jwt
+- static gen
+- css and js minify/ bundler
+- cors
