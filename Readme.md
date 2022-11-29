@@ -48,6 +48,7 @@ mkdir my-first-statikly
 cd my-first-statikly
 statikly init
 statikly serve
+# you can use nodemon to watch for changes, npm i -g nodemon, npm run watch
 ```
 
 ## Manual guide
