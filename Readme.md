@@ -41,6 +41,17 @@ api/note/[id].js => api/note/:id
 
 # Getting Started
 
+## Start with example app
+
+```sh
+mkdir my-first-statikly
+cd my-first-statikly
+statikly init
+statikly serve
+```
+
+## Manual guide
+
 Write your first view, create views/index.ejs and run statikly
 
 ```ejs
