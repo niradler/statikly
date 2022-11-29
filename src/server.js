@@ -37,11 +37,11 @@ const server = async (options = {}) => {
             app.route({
                 method: "GET",
                 url,
-                handler: (req, reply) => {
+                handler: async (req, reply) => {
                     return reply.ejs(viewPath, {
                         query: req.query,
                         params: req.params,
-                        data: req.actionData
+                        data: req.actionData,
                     }, viewOption);
                 },
                 preHandler: async (req, reply, done) => {
@@ -56,7 +56,7 @@ const server = async (options = {}) => {
         await app.register(require('@fastify/routes'))
         await app.register(require('@fastify/cookie'))
         await app.register(require('@fastify/session'), { secret: sessionSecret, cookie: { secure: 'auto' } })
-        await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } })
+        // await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } })
         await app.register(require('@fastify/sensible'))
         await app.register(require("@fastify/helmet"));
         await app.register(require('@fastify/formbody'))
@@ -111,10 +111,14 @@ const server = async (options = {}) => {
                 const parsed = pathToRoute(apiFile.replace(pathNormalize(apiDir), ""))
                 const controller = require(apiFile)
                 const methods = ["head", "post", "put", "delete", "options", "patch", "get"]
-                await app.register(function (fastify, _, done) {
+                await app.register(function (app, _, done) {
                     methods.forEach(method => {
                         if (controller[method]) {
-                            fastify[method](parsed.url, controller[method])
+                            app.route({
+                                method: method.toUpperCase(),
+                                url: parsed.url,
+                                handler: controller[method].handler,
+                            });
                         }
                     })
                     done()
