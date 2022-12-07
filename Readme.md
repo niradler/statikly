@@ -26,7 +26,7 @@ STATIKLY_USERNAME=user # optional: basic auth
 
 defaults:
 
-- template engine ejs ()
+- template engine ejs
 - views folder = views
 - api folder = api
 - public folder = public
@@ -98,7 +98,7 @@ module.exports = {
 curl http://localhost:3000/api/notes
 ```
 
-Build on top of [fastify](https://www.fastify.io/), so fo more information, have a look at the [fastify docs](https://www.fastify.io/docs/latest/)
+Build on top of [fastify](https://www.fastify.io/), for more information, checkout the [fastify docs](https://www.fastify.io/docs/latest/)
 
 Recommended reading:
 
