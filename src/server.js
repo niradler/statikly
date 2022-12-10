@@ -4,10 +4,10 @@ const pathUtils = require("path");
 const fs = require("fs/promises");
 const { toFilePath, getFiles, pathNormalize, pathToRoute } = require("./utils")
 
-const generateSecret = (length) => new Array(length).fill(0).map(() => Math.floor(Math.random() * 10)).join()
+const generateSecret = (length) => new Array(length).fill(0).map(() => Math.floor(Math.random() * 10)).join("")
 
 const server = async (options = {}) => {
-    try {
+    try {        
         const port = process.env.PORT || options.port || 3000
         const password = options.password || process.env.STATIKLY_PASSWORD
         const username = options.username || process.env.STATIKLY_USERNAME
@@ -20,6 +20,7 @@ const server = async (options = {}) => {
         const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath("./views", rootDir);
         const apiDir = toFilePath(options.apiDir, rootDir) || toFilePath("./api", rootDir);
         const viewOptions = options.viewOptions || {}
+        const context = options.context ? JSON.parse(await fs.readFile(toFilePath(options.context, rootDir)))  : {};
         const logOptions = !isProd ? {
             transport: {
                 target: 'pino-pretty',
@@ -31,7 +32,8 @@ const server = async (options = {}) => {
         } : true;
 
         const app = options.app || Fastify({ logger: logOptions });
-
+        const appLogger = options.verbose ? console.debug : ()=>false
+        appLogger({appLogger,port,password,username,isProd,sessionSecret,rootDir,publicDir,templateEngine,layout,viewsDir,apiDir,viewOptions,context,logOptions});
         const registerViewRoute = ({ url, viewPath, loader }) => {
             const viewOption = loader.viewOption ? loader.viewOption : {}
             app.route({
@@ -73,12 +75,13 @@ const server = async (options = {}) => {
             layout: layout ? layout : undefined,
             propertyName: templateEngine,
             defaultContext: {
+                context,
                 env: process.env,
                 fromRoot: (path) => toFilePath(path, rootDir)
             },
             options: viewOptions,
         });
-
+        appLogger('app registers complete')
         if (username && password) {
             const authenticate = { realm: 'statikly' }
             async function validate(usernameInput, passwordInput, req, reply) {

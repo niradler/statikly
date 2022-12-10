@@ -59,6 +59,10 @@ argv = yargs(hideBin(process.argv))
                 type: 'boolean',
                 default: false
             })
+            .option('context', {
+                alias: 'ctx',
+                describe: 'context json file',
+            })            
     }, (options) => {
         if (options.verbose) console.info(options)
         server(options)
