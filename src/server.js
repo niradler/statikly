@@ -5,6 +5,7 @@ const fs = require("fs/promises");
 const { toFilePath, getFiles, pathNormalize, pathToRoute } = require("./utils")
 
 const generateSecret = (length) => new Array(length).fill(0).map(() => Math.floor(Math.random() * 10)).join("")
+const readJSON = async(path,rootDir) => path ? JSON.parse(await fs.readFile(toFilePath(path, rootDir)))  : {};
 
 const server = async (options = {}) => {
     try {        
@@ -12,15 +13,16 @@ const server = async (options = {}) => {
         const password = options.password || process.env.STATIKLY_PASSWORD
         const username = options.username || process.env.STATIKLY_USERNAME
         const isProd = options.prod || process.env.NODE_ENV === 'production'
-        const sessionSecret = options.sessionSecret || process.env.STATIKLY_SESSION_SECRET || isProd ? "" : generateSecret(32)
+        const sessionSecret = options.sessionSecret || process.env.STATIKLY_SESSION_SECRET || (isProd ? "" : generateSecret(32))
         const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
         const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath(options.publicDir, rootDir) || toFilePath("./public", rootDir);
         const templateEngine = process.env.STATIKLY_TEMPLATE || options.templateEngine || "ejs";
         const layout = options.layout || process.env.STATIKLY_LAYOUT; //relative to root
         const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath("./views", rootDir);
         const apiDir = toFilePath(options.apiDir, rootDir) || toFilePath("./api", rootDir);
-        const viewOptions = options.viewOptions || {}
-        const context = options.context ? JSON.parse(await fs.readFile(toFilePath(options.context, rootDir)))  : {};
+        const viewOptions = await readJSON(options.viewOptions,rootDir);
+        const context = await readJSON(options.context,rootDir);
+        const host = options.host ? options.host : 'localhost'
         const logOptions = !isProd ? {
             transport: {
                 target: 'pino-pretty',
@@ -133,7 +135,7 @@ const server = async (options = {}) => {
 
         await app.ready()
         if (!isProd) app.log.debug("routes", app.routes.keys())
-        await app.listen({ port })
+        await app.listen({ port, host })
     } catch (err) {
         console.error(err);
         process.exit(1);

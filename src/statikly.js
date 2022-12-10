@@ -47,7 +47,7 @@ argv = yargs(hideBin(process.argv))
                 default: "./views"
             })
             .option('layout', {
-                describe: 'template engine',
+                describe: 'layout file',
                 default: undefined
             })
             .option('apiDir', {
@@ -62,9 +62,20 @@ argv = yargs(hideBin(process.argv))
             .option('context', {
                 alias: 'ctx',
                 describe: 'context json file',
-            })            
+            })
+            .option('sessionSecret', {
+                alias: 'sc',
+                describe: 'session secret',
+            }) 
+            .option('viewOptions', {
+                alias: 'vo',
+                describe: 'view options',
+            }).option('host', {
+                describe: 'listener host',
+                default: 'localhost'
+            })                 
     }, (options) => {
-        if (options.verbose) console.info(options)
+        if (options.verbose) console.info(options, process.env)
         server(options)
     })
     .demandCommand(1, '')
