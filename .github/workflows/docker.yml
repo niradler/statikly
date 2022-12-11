@@ -28,5 +28,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          platforms: 'amd64,arm64,arm'
           push: true
           tags: niradler/statikly:latest
