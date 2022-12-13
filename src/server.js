@@ -1,145 +1,46 @@
-require('dotenv').config()
-const Fastify = require("fastify");
-const pathUtils = require("path");
-const fs = require("fs/promises");
-const { toFilePath, getFiles, pathNormalize, pathToRoute } = require("./utils")
-
-const generateSecret = (length) => new Array(length).fill(0).map(() => Math.floor(Math.random() * 10)).join("")
-const readJSON = async(path,rootDir) => path ? JSON.parse(await fs.readFile(toFilePath(path, rootDir)))  : {};
+require('dotenv').config();
+const Fastify = require('fastify');
+const { toFilePath, generateSecret, readJSON } = require('./utils/common');
+const middleware = require('./middleware');
 
 const server = async (options = {}) => {
-    try {        
-        const port = process.env.PORT || options.port || 3000
-        const password = options.password || process.env.STATIKLY_PASSWORD
-        const username = options.username || process.env.STATIKLY_USERNAME
-        const isProd = options.prod || process.env.NODE_ENV === 'production'
-        const sessionSecret = options.sessionSecret || process.env.STATIKLY_SESSION_SECRET || (isProd ? "" : generateSecret(32))
-        const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
-        const publicDir = toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath(options.publicDir, rootDir) || toFilePath("./public", rootDir);
-        const templateEngine = process.env.STATIKLY_TEMPLATE || options.templateEngine || "ejs";
-        const layout = options.layout || process.env.STATIKLY_LAYOUT; //relative to root
-        const viewsDir = toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath("./views", rootDir);
-        const apiDir = toFilePath(options.apiDir, rootDir) || toFilePath("./api", rootDir);
-        const viewOptions = await readJSON(options.viewOptions,rootDir);
-        const context = await readJSON(options.context,rootDir);
-        const host = options.host ? options.host : 'localhost'
-        const logOptions = !isProd ? {
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    translateTime: 'HH:MM:ss Z',
-                    ignore: 'pid,hostname',
-                },
-            },
-        } : true;
+    const isProd = options.prod || process.env.NODE_ENV === 'production';
+    const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
+    const logOptions = !isProd
+        ? {
+              transport: {
+                  target: 'pino-pretty',
+                  options: {
+                      translateTime: 'HH:MM:ss Z',
+                      ignore: 'pid,hostname',
+                  },
+              },
+          }
+        : true;
+    const app = options.app || Fastify({ logger: logOptions });
+    const appLogger = options.verbose ? console.debug : () => false;
+    app._logger = appLogger;
+    app._config = {
+        port: process.env.PORT || options.port || 3000,
+        password: options.password || process.env.STATIKLY_PASSWORD,
+        username: options.username || process.env.STATIKLY_USERNAME,
+        isProd,
+        sessionSecret: options.sessionSecret || process.env.STATIKLY_SESSION_SECRET || (isProd ? '' : generateSecret(32)),
+        rootDir,
+        publicDir: toFilePath(process.env.STATIKLY_PUBLIC_FOLDER, rootDir) || toFilePath(options.publicDir, rootDir) || toFilePath('./public', rootDir),
+        templateEngine: process.env.STATIKLY_TEMPLATE || options.templateEngine || 'ejs',
+        layout: options.layout || process.env.STATIKLY_LAYOUT, //relative to root
+        viewsDir: toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath('./views', rootDir),
+        apiDir: toFilePath(options.apiDir, rootDir) || toFilePath('./api', rootDir),
+        viewOptions: await readJSON(options.viewOptions, rootDir),
+        context: await readJSON(options.context, rootDir),
+        host: options.host ? options.host : 'localhost',
+    };
+    app._logger('app._config', app._config);
 
-        const app = options.app || Fastify({ logger: logOptions });
-        const appLogger = options.verbose ? console.debug : ()=>false
-        appLogger({appLogger,port,password,username,isProd,sessionSecret,rootDir,publicDir,templateEngine,layout,viewsDir,apiDir,viewOptions,context,logOptions});
-        const registerViewRoute = ({ url, viewPath, loader }) => {
-            const viewOption = loader.viewOption ? loader.viewOption : {}
-            app.route({
-                method: "GET",
-                url,
-                handler: async (req, reply) => {
-                    return reply.ejs(viewPath, {
-                        query: req.query,
-                        params: req.params,
-                        data: req.actionData,
-                    }, viewOption);
-                },
-                preHandler: async (req, reply, done) => {
-                    if (loader.handler) {
-                        const data = await loader.handler(req, reply, done)
-                        req.actionData = data;
-                    }
-                },
-            });
-        }
-        await app.register(require('@fastify/cors'), {})
-        await app.register(require('@fastify/routes'))
-        await app.register(require('@fastify/cookie'))
-        await app.register(require('@fastify/session'), { secret: sessionSecret, cookie: { secure: 'auto' } })
-        // await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } })
-        await app.register(require('@fastify/sensible'))
-        await app.register(require('@fastify/flash'))
-        await app.register(require("@fastify/helmet"));
-        await app.register(require('@fastify/formbody'))
-        await app.register(require("@fastify/static"), {
-            root: publicDir,
-            prefix: `/public/`,
-        });
-        await app.register(require("@fastify/view"), {
-            engine: {
-                [templateEngine]: require(templateEngine),
-            },
-            root: rootDir,
-            layout: layout ? layout : undefined,
-            propertyName: templateEngine,
-            defaultContext: {
-                context,
-                env: process.env,
-                fromRoot: (path) => toFilePath(path, rootDir)
-            },
-            options: viewOptions,
-        });
-        appLogger('app registers complete')
-        if (username && password) {
-            const authenticate = { realm: 'statikly' }
-            async function validate(usernameInput, passwordInput, req, reply) {
-                if (username !== usernameInput || password !== passwordInput) {
-                    return new Error('Unauthorized')
-                }
-            }
-            await app.register(require('@fastify/basic-auth'), { validate, authenticate })
-            app.addHook('onRequest', app.basicAuth)
-        }
+    await middleware.fullstack(app);
 
-        const hasViews = await fs.stat(viewsDir).catch(e => false)
-        if (hasViews) {
-            const viewsFiles = await getFiles(pathNormalize(viewsDir) + `/**/*.${templateEngine}`)
-            for await (const viewFile of viewsFiles) {
-                const parsed = pathToRoute(viewFile.replace(pathNormalize(viewsDir), ""))
-                const loaderPath = pathUtils.join(viewsDir, parsed.dir, "loader.js")
-                const hasLoader = await fs.stat(loaderPath).catch(e => false)
-                registerViewRoute({
-                    url: parsed.url,
-                    viewPath: viewFile.replace(pathNormalize(rootDir), ""),
-                    loader: hasLoader ? require(loaderPath) : hasLoader
-                })
-            }
-        }
-
-        const hasApi = await fs.stat(apiDir).catch(e => false)
-        if (hasApi) {
-            const apiFiles = await getFiles(pathNormalize(apiDir) + `/**/*.js`)
-            for await (const apiFile of apiFiles) {
-                const parsed = pathToRoute(apiFile.replace(pathNormalize(apiDir), ""))
-                const controller = require(apiFile)
-                const methods = ["head", "post", "put", "delete", "options", "patch", "get"]
-                await app.register(function (app, _, done) {
-                    methods.forEach(method => {
-                        if (controller[method]) {
-                            app.route({
-                                method: method.toUpperCase(),
-                                url: parsed.url,
-                                handler: controller[method].handler,
-                            });
-                        }
-                    })
-                    done()
-                }, { prefix: '/api' })
-
-            }
-        }
-
-        await app.ready()
-        if (!isProd) app.log.debug("routes", app.routes.keys())
-        await app.listen({ port, host })
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
+    return app;
 };
 
-module.exports = server
+module.exports = server;
