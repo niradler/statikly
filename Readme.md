@@ -110,9 +110,8 @@ Recommended reading:
 
 TODO:
 
--   support route options for api and views
--   csrf
--   jwt
+-   advance from support (server/client)
 -   static gen
--   css and js minify/ bundler
--   cors
+-   auth / jwt support
+-   css and js minify / bundler
+-   csrf / cors configurations / verify security features
