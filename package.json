@@ -16,7 +16,7 @@
     "simple"
   ],
   "author": "Nir Adler",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@fastify/basic-auth": "^4.0.0",
     "@fastify/caching": "^8.1.0",

@@ -7,9 +7,13 @@ statikly is just an opinionated warpper around [fastify](https://www.fastify.io/
 
 when your app is growing you can always eject and control everting yourself.
 
+## Installation
+
 ```js
 npm i -g statikly
 ```
+
+## Configuration
 
 environment variables:
 
@@ -26,10 +30,10 @@ STATIKLY_USERNAME=user # optional: basic auth
 
 defaults:
 
-- template engine ejs
-- views folder = views
-- api folder = api
-- public folder = public
+-   template engine ejs
+-   views folder = views
+-   api folder = api
+-   public folder = public
 
 _All routes is file base:_
 
@@ -39,19 +43,18 @@ views/note/[id].ejs => /note/:id
 api/notes/index.js => api/notes
 api/note/[id].js => api/note/:id
 
-# Getting Started
+## Getting Started
 
-## Start with example app
+### Start with example app
 
 ```sh
 mkdir my-first-statikly
 cd my-first-statikly
-statikly init
+statikly init # clone the demo from https://github.com/niradler/statikly-demo
 statikly serve
-# you can use nodemon to watch for changes, npm i -g nodemon, npm run watch
 ```
 
-## Manual guide
+### Manual guide
 
 Write your first view, create views/index.ejs and run statikly
 
@@ -81,7 +84,7 @@ Passing server side data to views, create views/loader.js and run statikly
 
 ```js
 module.exports = {
-  handler: async (req) => [{ id: 1, title: "note1" }],
+    handler: async (req) => [{ id: 1, title: 'note1' }],
 };
 ```
 
@@ -89,8 +92,8 @@ Api routes, create api/notes.js and run statikly
 
 ```js
 module.exports = {
-  get: async (req, reply) => [{ id: 1, title: "note1" }],
-  post: async (req, reply) => [{ id: 1, title: "note1" }],
+    get: async (req, reply) => [{ id: 1, title: 'note1' }],
+    post: async (req, reply) => [{ id: 1, title: 'note1' }],
 };
 ```
 
@@ -102,14 +105,14 @@ Build on top of [fastify](https://www.fastify.io/), for more information, checko
 
 Recommended reading:
 
-- (Request)[https://www.fastify.io/docs/latest/Reference/Request/]
-- (Reply)[https://www.fastify.io/docs/latest/Reference/Reply/]
+-   (Request)[https://www.fastify.io/docs/latest/Reference/Request/]
+-   (Reply)[https://www.fastify.io/docs/latest/Reference/Reply/]
 
 TODO:
 
-- support route options for api and views
-- csrf
-- jwt
-- static gen
-- css and js minify/ bundler
-- cors
+-   support route options for api and views
+-   csrf
+-   jwt
+-   static gen
+-   css and js minify/ bundler
+-   cors
