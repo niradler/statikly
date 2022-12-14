@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Fastify = require('fastify');
 const { toFilePath, generateSecret, readJSON } = require('./utils/common');
-const middleware = require('./middleware');
+const stacks = require('./stacks');
 
 const server = async (options = {}) => {
     const isProd = options.prod || process.env.NODE_ENV === 'production';
@@ -38,7 +38,7 @@ const server = async (options = {}) => {
     };
     app._logger('app._config', app._config);
 
-    await middleware.fullstack(app);
+    await stacks.fullstack(app);
 
     return app;
 };
