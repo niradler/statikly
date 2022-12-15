@@ -27,6 +27,7 @@ const registerViewRoute = (app, { url, viewPath, extend = {} }) => {
     if (actions) {
         app.route({
             method: ['DELETE', 'PATCH', 'POST', 'PUT'],
+            preHandler: app.csrfProtection,
             url,
             handler: actions,
         });
@@ -37,13 +38,15 @@ const fullstack = async (app) => {
     const { password, username, sessionSecret, rootDir, publicDir, templateEngine, layout, viewsDir, apiDir, viewOptions, context } = app._config;
     await app.register(require('@fastify/cors'), {});
     await app.register(require('@fastify/routes'));
+    await app.register(require('@fastify/formbody'));
     await app.register(require('@fastify/cookie'), { secret: sessionSecret });
     await app.register(require('@fastify/session'), { secret: sessionSecret, cookie: { secure: 'auto' } });
-    await app.register(require('@fastify/csrf-protection'), { cookieOpts: { signed: true } });
+    await app.register(require('@fastify/csrf-protection'), {
+        sessionPlugin: '@fastify/session',
+    });
     await app.register(require('@fastify/sensible'));
     await app.register(require('@fastify/flash'));
     await app.register(require('@fastify/helmet'));
-    await app.register(require('@fastify/formbody'));
     await app.register(require('@fastify/caching'), { expiresIn: 300, serverExpiresIn: 300 });
     await app.register(require('@fastify/static'), {
         root: publicDir,
@@ -81,7 +84,6 @@ const fullstack = async (app) => {
         const viewsFiles = await getFiles(pathNormalize(viewsDir) + `/**/*.${templateEngine}`);
         for await (const viewFile of viewsFiles) {
             const parsed = pathToRoute(viewFile.replace(pathNormalize(viewsDir), ''));
-            app._logger({ parsed });
             const extendPath = pathUtils.join(viewsDir, parsed.dir, `${parsed.name}.js`);
             const hasExtend = !!(await fs.stat(extendPath).catch((e) => false));
             app._logger('view register', parsed.url, { hasExtend });
