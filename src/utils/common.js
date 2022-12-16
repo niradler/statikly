@@ -17,16 +17,10 @@ const pathNormalize = (path) => {
 
 const pathToRoute = (path) => {
     const parsed = pathUtils.parse(path);
-    const route = parsed;
-    if (parsed.name === 'index') {
-        route.url = parsed.dir;
-    } else if (parsed.name.startsWith('[') && parsed.name.endsWith(']')) {
-        route.url = `${parsed.dir}/:${parsed.name.slice(1, parsed.name.length - 1)}`;
-    } else {
-        route.url = `/${parsed.name}`;
-    }
+    parsed.url = `${parsed.dir}${parsed.name === 'index' ? '' : '/'}${parsed.name === 'index' ? '' : parsed.name}`.replace(/\[/g, ':').replace(/\]/g, '');
 
-    return route;
+    console.log(parsed);
+    return parsed;
 };
 
 const toFilePath = (path, root = process.cwd()) => {

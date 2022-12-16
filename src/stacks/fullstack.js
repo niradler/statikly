@@ -86,7 +86,7 @@ const fullstack = async (app) => {
             const parsed = pathToRoute(viewFile.replace(pathNormalize(viewsDir), ''));
             const extendPath = pathUtils.join(viewsDir, parsed.dir, `${parsed.name}.js`);
             const hasExtend = !!(await fs.stat(extendPath).catch((e) => false));
-            app._logger('view register', parsed.url, { hasExtend });
+            app._logger('view register', parsed.url, { hasExtend, extendPath });
             registerViewRoute(app, {
                 url: parsed.url,
                 viewPath: viewFile.replace(pathNormalize(rootDir), ''),

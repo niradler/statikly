@@ -130,7 +130,4 @@ dist
 .pnp.*
 
 .vscode
-views/*
-public/*
-api/*
-partials/*
+tests/*
