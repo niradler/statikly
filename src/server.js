@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Fastify = require('fastify');
 const { toFilePath, generateSecret, readJSON } = require('./utils/common');
-const stacks = require('./stacks');
+const run = require('./modules/run');
 
 const server = async (options = {}) => {
     const isProd = options.prod || process.env.NODE_ENV === 'production';
@@ -33,12 +33,14 @@ const server = async (options = {}) => {
         viewsDir: toFilePath(process.env.STATIKLY_VIEWS, rootDir) || toFilePath(options.viewsDir, rootDir) || toFilePath('./views', rootDir),
         apiDir: toFilePath(options.apiDir, rootDir) || toFilePath('./api', rootDir),
         viewOptions: await readJSON(options.viewOptions, rootDir),
+        modules: options.modules || ['cache', 'session', 'views', 'api', 'public'],
+        corsOrigin: options.corsOrigin || ['localhost'],
         context: await readJSON(options.context, rootDir),
         host: options.host ? options.host : 'localhost',
     };
     app._logger('app._config', app._config);
 
-    await stacks.fullstack(app);
+    await run(app);
 
     return app;
 };

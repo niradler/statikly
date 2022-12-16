@@ -110,8 +110,8 @@ Recommended reading:
 
 TODO:
 
--   advance from support (server/client)
+-   advance form support (server/client)
 -   static gen
--   auth / jwt support
--   css and js minify / bundler
+-   auth / social login / jwt support
+-   css and js minify / bundler (vite)
 -   csrf / cors configurations / verify security features

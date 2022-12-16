@@ -78,6 +78,16 @@ argv = yargs(hideBin(process.argv))
                     alias: 'vo',
                     describe: 'view options',
                 })
+                .option('corsOrigin', {
+                    describe: 'cors origin',
+                    type: 'array',
+                    default: ['localhost'],
+                })
+                .option('modules', {
+                    describe: 'modules',
+                    type: 'array',
+                    default: ['cache', 'session', 'views', 'api', 'public'],
+                })
                 .option('host', {
                     describe: 'listener host',
                     default: 'localhost',
