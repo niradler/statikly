@@ -1,17 +1,16 @@
 const pathUtils = require('path');
-const fs = require('fs/promises');
-const { toFilePath, getFiles, pathNormalize, pathToRoute } = require('../utils/common');
+const { toFilePath, getFiles, pathNormalize, pathToRoute, fileExists } = require('../utils/common');
 
-const registerViewRoute = (app, { url, viewPath, extend = {} }) => {
+const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = {}, hasErrorPage }) => {
     const { actions, viewOption, loader } = extend;
 
-    app.route({
+    const viewRoue = {
         method: 'GET',
         url,
         handler: async (req, reply) => {
             const data = loader ? await loader(req, reply) : {};
             const csrf = await reply.generateCsrf();
-            return reply.ejs(
+            return reply[templateEngine](
                 viewPath,
                 {
                     query: req.query,
@@ -22,12 +21,33 @@ const registerViewRoute = (app, { url, viewPath, extend = {} }) => {
                 viewOption
             );
         },
-    });
+    };
+
+    if (hasErrorPage) {
+        viewRoue.errorHandler = (error, req, reply) => {
+            return reply[templateEngine](
+                'views/error',
+                {
+                    query: req.query,
+                    params: req.params,
+                    data: {
+                        message: app._config.isProd ? 'Something went wrong, please try again' : error.message,
+                    },
+                },
+                {
+                    layout: false,
+                }
+            );
+        };
+    }
+
+    app.route(viewRoue);
 
     if (actions) {
         app.route({
             method: ['DELETE', 'PATCH', 'POST', 'PUT'],
             preHandler: app.csrfProtection,
+
             url,
             handler: actions,
         });
@@ -78,24 +98,28 @@ const fullstack = async (app) => {
     }
     app._logger('app middleware registers complete');
 
-    const hasViews = !!(await fs.stat(viewsDir).catch((e) => false));
+    const hasViews = await fileExists(viewsDir);
     app._logger('has views ', hasViews);
     if (hasViews) {
         const viewsFiles = await getFiles(pathNormalize(viewsDir) + `/**/*.${templateEngine}`);
         for await (const viewFile of viewsFiles) {
             const parsed = pathToRoute(viewFile.replace(pathNormalize(viewsDir), ''));
             const extendPath = pathUtils.join(viewsDir, parsed.dir, `${parsed.name}.js`);
-            const hasExtend = !!(await fs.stat(extendPath).catch((e) => false));
+            const hasExtend = await fileExists(extendPath);
             app._logger('view register', parsed.url, { hasExtend, extendPath });
-            registerViewRoute(app, {
+            const hasErrorPage = await fileExists(pathUtils.join(viewsDir, `error.${templateEngine}`));
+            console.log({ hasErrorPage });
+            await registerViewRoute(app, {
+                templateEngine,
                 url: parsed.url,
                 viewPath: viewFile.replace(pathNormalize(rootDir), ''),
                 extend: hasExtend ? require(extendPath) : {},
+                hasErrorPage,
             });
         }
     }
     app._logger('app views registers complete');
-    const hasApi = !!(await fs.stat(apiDir).catch((e) => false));
+    const hasApi = await fileExists(apiDir);
     app._logger('has api routes', hasApi);
     if (hasApi) {
         const apiFiles = await getFiles(pathNormalize(apiDir) + `/**/*.js`);

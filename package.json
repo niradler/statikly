@@ -27,6 +27,7 @@
     "@fastify/formbody": "^7.3.0",
     "@fastify/helmet": "^10.1.0",
     "@fastify/jwt": "^6.4.0",
+    "@fastify/oauth2": "^7.0.0",
     "@fastify/routes": "^5.0.0",
     "@fastify/secure-session": "^5.2.0",
     "@fastify/sensible": "^5.1.1",

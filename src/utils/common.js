@@ -35,5 +35,6 @@ const generateSecret = (length) =>
         .join('');
 
 const readJSON = async (path, rootDir) => (path ? JSON.parse(await fs.readFile(toFilePath(path, rootDir))) : {});
+const fileExists = async (path) => !!(await fs.stat(path).catch((e) => false));
 
-module.exports = { getFiles, pathNormalize, pathToRoute, toFilePath, generateSecret, readJSON };
+module.exports = { getFiles, pathNormalize, pathToRoute, toFilePath, generateSecret, readJSON, fileExists };
