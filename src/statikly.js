@@ -3,6 +3,7 @@ const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const degit = require('degit');
 const server = require('./server');
+const { readJSON } = require('./utils/common');
 
 argv = yargs(hideBin(process.argv))
     .command(
@@ -18,6 +19,16 @@ argv = yargs(hideBin(process.argv))
             emitter.clone(process.cwd()).then(() => {
                 console.log('All set, start by running npm run serve');
             });
+        }
+    )
+    .command(
+        'modules',
+        'list available modules',
+        (yargs) => {},
+        (options) => {
+            if (options.verbose) console.info(options);
+            const modules = require('./modules');
+            console.log(JSON.stringify(Object.keys(modules), null, 2));
         }
     )
     .command(
@@ -42,7 +53,7 @@ argv = yargs(hideBin(process.argv))
                     default: process.cwd(),
                 })
                 .option('publicDir', {
-                    describe: 'public directory',
+                    describe: 'public directory, for static assets',
                     default: './public',
                 })
                 .option('templateEngine', {
@@ -68,25 +79,28 @@ argv = yargs(hideBin(process.argv))
                 })
                 .option('context', {
                     alias: 'ctx',
-                    describe: 'context json file',
+                    describe: 'pass context data as json file',
                 })
                 .option('sessionSecret', {
                     alias: 'sc',
                     describe: 'session secret',
                 })
                 .option('viewOptions', {
-                    alias: 'vo',
-                    describe: 'view options',
+                    describe: 'view options file (json), will be pass to template engine',
                 })
                 .option('corsOrigin', {
-                    describe: 'cors origin',
+                    describe: 'cors origin, support multiple origins',
                     type: 'array',
                     default: ['localhost'],
                 })
                 .option('modules', {
                     describe: 'modules',
+                    alias: 'm',
                     type: 'array',
                     default: ['cache', 'session', 'views', 'api', 'public'],
+                })
+                .option('optionsFile', {
+                    description: 'provide options file (json) instead of passing them as arguments',
                 })
                 .option('host', {
                     describe: 'listener host',
@@ -95,7 +109,15 @@ argv = yargs(hideBin(process.argv))
         },
         async (options) => {
             try {
-                if (options.verbose) console.info({ options, env: process.env });
+                if (options.optionsFile) {
+                    const optionsFromFile = await readJSON(options.optionsFile, options.rootDir);
+                    options = { ...options, ...optionsFromFile };
+                }
+
+                if (options.verbose) {
+                    console.info('argv', options);
+                }
+
                 const app = await server(options);
 
                 await app.ready();
@@ -115,4 +137,5 @@ argv = yargs(hideBin(process.argv))
         type: 'boolean',
         description: 'Run with verbose logging',
     })
+
     .parse();

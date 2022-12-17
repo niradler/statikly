@@ -19,7 +19,6 @@ const pathToRoute = (path) => {
     const parsed = pathUtils.parse(path);
     parsed.url = `${parsed.dir}${parsed.name === 'index' ? '' : '/'}${parsed.name === 'index' ? '' : parsed.name}`.replace(/\[/g, ':').replace(/\]/g, '');
 
-    console.log(parsed);
     return parsed;
 };
 

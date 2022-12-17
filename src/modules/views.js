@@ -25,6 +25,7 @@ const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = 
 
     if (hasErrorPage) {
         viewRoue.errorHandler = (error, req, reply) => {
+            app.log.error(error);
             return reply[templateEngine]('views/error', {
                 query: req.query,
                 params: req.params,
@@ -41,7 +42,6 @@ const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = 
         app.route({
             method: ['DELETE', 'PATCH', 'POST', 'PUT'],
             preHandler: app.csrfProtection,
-
             url,
             handler: actions,
         });

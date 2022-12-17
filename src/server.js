@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Fastify = require('fastify');
 const { toFilePath, generateSecret, readJSON } = require('./utils/common');
-const run = require('./modules/run');
+const appModules = require('./modules');
 
 const server = async (options = {}) => {
     const isProd = options.prod || process.env.NODE_ENV === 'production';
@@ -40,7 +40,18 @@ const server = async (options = {}) => {
     };
     app._logger('app._config', app._config);
 
-    await run(app);
+    const { modules, corsOrigin } = app._config;
+    await app.register(require('@fastify/cors'), {
+        origin: corsOrigin,
+    });
+    await app.register(require('@fastify/helmet'));
+    await app.register(require('@fastify/routes'));
+    await app.register(require('@fastify/formbody'));
+    await app.register(require('@fastify/sensible'));
+    for await (const moduleName of modules) {
+        app._logger('loading module', moduleName);
+        await appModules[moduleName](app);
+    }
 
     return app;
 };
