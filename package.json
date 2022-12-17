@@ -7,7 +7,8 @@
     "statikly": "src/statikly.js"
   },
   "scripts": {
-    "build-image": "docker build -t niradler/statikly:latest ."
+    "build-image": "docker build -t niradler/statikly:latest .",
+    "commit": "git-cz"
   },
   "keywords": [
     "ui",
@@ -50,5 +51,8 @@
   "bugs": {
     "url": "https://github.com/niradler/statikly/issues"
   },
-  "homepage": "https://github.com/niradler/statikly#readme"
+  "homepage": "https://github.com/niradler/statikly#readme",
+  "devDependencies": {
+    "git-cz": "^4.9.0"
+  }
 }
