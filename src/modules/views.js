@@ -3,23 +3,22 @@ const { toFilePath, getFiles, pathNormalize, pathToRoute, fileExists } = require
 
 const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = {}, hasErrorPage }) => {
     const { actions, viewOption, loader } = extend;
-
+    const sessionInstalled = app._config.modules.includes('session');
     const viewRoue = {
         method: 'GET',
         url,
         handler: async (req, reply) => {
             const data = loader ? await loader(req, reply) : {};
-            const csrf = await reply.generateCsrf();
-            return reply[templateEngine](
-                viewPath,
-                {
-                    query: req.query,
-                    params: req.params,
-                    data,
-                    csrf,
-                },
-                viewOption
-            );
+            const viewData = {
+                query: req.query,
+                params: req.params,
+                data,
+            };
+            if (sessionInstalled) {
+                viewData.csrf = await reply.generateCsrf();
+            }
+
+            return reply[templateEngine](viewPath, viewData, viewOption);
         },
     };
 
@@ -41,7 +40,7 @@ const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = 
     if (actions) {
         app.route({
             method: ['DELETE', 'PATCH', 'POST', 'PUT'],
-            preHandler: app.csrfProtection,
+            preHandler: sessionInstalled ? app.csrfProtection : undefined,
             url,
             handler: actions,
         });
