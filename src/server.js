@@ -8,14 +8,14 @@ const server = async (options = {}) => {
     const rootDir = toFilePath(process.env.STATIKLY_ROOT) || toFilePath(options.rootDir) || process.cwd();
     const logOptions = !isProd
         ? {
-              transport: {
-                  target: 'pino-pretty',
-                  options: {
-                      translateTime: 'HH:MM:ss Z',
-                      ignore: 'pid,hostname',
-                  },
-              },
-          }
+            transport: {
+                target: 'pino-pretty',
+                options: {
+                    translateTime: 'HH:MM:ss Z',
+                    ignore: 'pid,hostname',
+                },
+            },
+        }
         : true;
     const app = options.app || Fastify({ logger: logOptions });
     const appLogger = options.verbose ? console.debug : () => false;
@@ -39,7 +39,6 @@ const server = async (options = {}) => {
         host: options.host ? options.host : 'localhost',
     };
     app._logger('app._config', app._config);
-
     const { modules, corsOrigin } = app._config;
     await app.register(require('@fastify/cors'), {
         origin: corsOrigin,
