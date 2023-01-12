@@ -5,26 +5,33 @@ const degit = require('degit');
 const server = require('./server');
 const { readJSON } = require('./utils/common');
 
-argv = yargs(hideBin(process.argv))
+module.exports = yargs(hideBin(process.argv))
     .command(
         'init',
         'initialize example project',
-        (yargs) => {},
+        (yargs) => {
+            return yargs
+                .option('path', {
+                    describe: 'folder path',
+                    default: process.cwd(),
+                })
+        },
         (options) => {
             if (options.verbose) console.info(options);
             const emitter = degit('niradler/statikly-demo', {
                 force: true,
                 verbose: options.verbose,
             });
-            emitter.clone(process.cwd()).then(() => {
-                console.log('All set, start by running npm run serve');
+            emitter.clone(options.path).then(() => {
+                console.log('All set, start by running: npm run serve');
+                process.exit(0);
             });
         }
     )
     .command(
         'modules',
         'list available modules',
-        (yargs) => {},
+        () => { },
         (options) => {
             if (options.verbose) console.info(options);
             const modules = require('./modules');
