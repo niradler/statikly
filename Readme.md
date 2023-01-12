@@ -56,7 +56,7 @@ statikly serve
 
 ### Manual guide
 
-Write your first view, create views/index.ejs and run statikly
+Write your first view, create views/index.ejs and run statikly serve
 
 ```ejs
 <!DOCTYPE html>
@@ -83,8 +83,28 @@ Write your first view, create views/index.ejs and run statikly
 Passing server side data to views, create views/loader.js and run statikly
 
 ```js
+//views/index.js
 module.exports = {
-    handler: async (req) => [{ id: 1, title: 'note1' }],
+    loader: async (req, reply) => {
+        return { todos }; // available in views data.todos
+    },
+};
+```
+
+Processing forms
+
+```js
+//views/index.js
+module.exports = {
+    actions: async (req, reply) => {
+        const title = req.body.title;
+        if (title.length < 2) {
+            req.flash('errors', ['title length should be longer then 2 characters']);
+            return reply.redirect('/todos');
+        }
+        await db.add(title);
+        reply.redirect('/todos');
+    },
 };
 ```
 
@@ -114,4 +134,4 @@ TODO:
 -   static gen
 -   auth / social login / jwt support
 -   css and js minify / bundler (vite)
--   csrf / cors configurations / verify security features
+-   verify security features
