@@ -1,0 +1,21 @@
+{
+    "globals": {
+        "process": true
+    },
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "browser": true,
+        "es2021": true,
+        "jest/globals": true
+    },
+    "extends": "eslint:recommended",
+    "overrides": [],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "jest/valid-expect": "error"
+    },
+    "plugins": ["jest"]
+}

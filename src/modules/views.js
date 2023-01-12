@@ -1,5 +1,5 @@
-const pathUtils = require('path');
-const { toFilePath, getFiles, pathNormalize, pathToRoute, fileExists } = require('../utils/common');
+const { Router } = require('statikly-router')
+const { toFilePath } = require('../utils/common');
 
 const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = {}, hasErrorPage }) => {
     const { actions, viewOption, loader } = extend;
@@ -64,25 +64,22 @@ module.exports = async (app) => {
         options: viewOptions,
     });
 
-    const hasViews = await fileExists(viewsDir);
-    app._logger('has views ', hasViews);
-    if (hasViews) {
-        const viewsFiles = await getFiles(pathNormalize(viewsDir) + `/**/*.${templateEngine}`);
-        for await (const viewFile of viewsFiles) {
-            const parsed = pathToRoute(viewFile.replace(pathNormalize(viewsDir), ''));
-            const extendPath = pathUtils.join(viewsDir, parsed.dir, `${parsed.name}.js`);
-            const hasExtend = await fileExists(extendPath);
-            app._logger('view register', parsed.url, { hasExtend, extendPath });
-            const hasErrorPage = await fileExists(pathUtils.join(viewsDir, `error.${templateEngine}`));
-
+    const router = new Router({ path: viewsDir });
+    const routes = await router.scan();
+    app._logger('has views ', routes);
+    const hasErrorPage = routes['/error']
+    for (const url in routes) {
+        const route = routes[url];
+        if (route[templateEngine]) {
             await registerViewRoute(app, {
                 templateEngine,
-                url: parsed.url,
-                viewPath: viewFile.replace(pathNormalize(rootDir), ''),
-                extend: hasExtend ? require(extendPath) : {},
+                url,
+                viewPath: `views/${route.ejs.dir}/${route.ejs.base}`,
+                extend: route.js ? require(route.js.path) : {},
                 hasErrorPage,
             });
         }
     }
+
     app._logger('app views registers complete');
 };
