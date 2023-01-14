@@ -18,6 +18,7 @@ npm i -g statikly
 environment variables:
 
 ```sh
+STATIKLY_SESSION_SECRET= # optional: npx @fastify/secure-session
 NODE_ENV=production # optional: set in production
 STATIKLY_ROOT= # optional: set to override current folder
 STATIKLY_STATIC_FOLDER=public # optional: for other public folder

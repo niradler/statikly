@@ -4,6 +4,7 @@ const { hideBin } = require('yargs/helpers');
 const degit = require('degit');
 const server = require('./server');
 const { readJSON } = require('./utils/common');
+const { bundle } = require('./utils/bundler');
 
 module.exports = yargs(hideBin(process.argv))
     .command(
@@ -26,6 +27,52 @@ module.exports = yargs(hideBin(process.argv))
                 console.log('All set, start by running: npm run serve');
                 process.exit(0);
             });
+        }
+    )
+    .command(
+        'bundle',
+        'create a bundle using esbuild',
+        (yargs) => {
+            return yargs
+                .option('path', {
+                    describe: 'bundle path',
+                    required: true,
+                }).option('output', {
+                    alias: "out",
+                    describe: 'output path',
+                    required: true,
+                }).option('bundle', {
+                    type: 'boolean',
+                    describe: 'bundle files',
+                    default: true,
+                }).option('watch', {
+                    type: 'boolean',
+                    alias: "w",
+                    describe: 'watch for changes',
+                    default: false,
+                }).option('minify', {
+                    type: 'boolean',
+                    describe: 'minify files',
+                    default: true,
+                }).option('sourcemap', {
+                    type: 'boolean',
+                    describe: 'generate sourcemap',
+                    default: false,
+                }).option('allowOverwrite', {
+                    type: 'boolean',
+                    describe: 'allow overwrite',
+                    default: true,
+                })
+        },
+        async (options) => {
+            try {
+                if (options.verbose) console.info(options);
+                await bundle(options)
+                process.exit(0);
+            } catch (error) {
+                console.error(error);
+                process.exit(1);
+            }
         }
     )
     .command(
