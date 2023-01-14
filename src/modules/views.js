@@ -1,12 +1,14 @@
-const { Router } = require('statikly-router')
+const fp = require('fastify-plugin')
 const { toFilePath } = require('../utils/common');
+const { Router } = require('statikly-router')
 
 const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = {}, hasErrorPage }) => {
-    const { actions, viewOption, loader } = extend;
+    const { actions, viewOption, loader, preHandler } = extend;
     const sessionInstalled = app._config.modules.includes('session');
     const viewRoue = {
         method: 'GET',
         url,
+        preHandler: preHandler ? preHandler : undefined,
         handler: async (req, reply) => {
             const data = loader ? await loader(req, reply) : {};
             const viewData = {
@@ -47,8 +49,11 @@ const registerViewRoute = async (app, { templateEngine, url, viewPath, extend = 
     }
 };
 
-module.exports = async (app) => {
-    const { rootDir, templateEngine, layout, viewsDir, viewOptions, context } = app._config;
+
+
+
+module.exports = fp(async function (app, { config }) {
+    const { rootDir, templateEngine, layout, viewsDir, viewOptions, context } = config;
     await app.register(require('@fastify/view'), {
         engine: {
             [templateEngine]: require(templateEngine),
@@ -82,4 +87,7 @@ module.exports = async (app) => {
     }
 
     app._logger('app views registers complete');
-};
+}, {
+    name: 'views',
+    dependencies: []
+})

@@ -9,6 +9,7 @@
   "scripts": {
     "build-image": "docker build -t niradler/statikly:latest .",
     "commit": "git add . && git-cz",
+    "serve:demo": "nodemon -e js,ejs --exec \"node src/statikly.js serve --root-dir tests/demo --optionsFile statikly.json --context context.json -v\"",
     "pretest": "rimraf tests/demo && node src/statikly.js init --path tests/demo",
     "test": "jest",
     "lint": "eslint . --ext .js --fix"
@@ -22,6 +23,7 @@
   "author": "Nir Adler",
   "license": "MIT",
   "dependencies": {
+    "@fastify/autoload": "^5.7.1",
     "@fastify/basic-auth": "^5.0.0",
     "@fastify/caching": "^8.2.0",
     "@fastify/cookie": "^8.3.0",
@@ -42,6 +44,8 @@
     "dotenv": "^16.0.3",
     "ejs": "^3.1.8",
     "fastify": "^4.11.0",
+    "fastify-cli": "^5.7.1",
+    "fastify-plugin": "^4.5.0",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1",
     "statikly-router": "^0.0.9",

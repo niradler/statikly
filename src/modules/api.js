@@ -1,8 +1,9 @@
+const fp = require('fastify-plugin')
 const { fileExists } = require('../utils/common');
 const { Router } = require('statikly-router')
 
-module.exports = async (app) => {
-    const { apiDir } = app._config;
+module.exports = fp(async function (app, { config }) {
+    const { apiDir } = config;
     const hasApi = await fileExists(apiDir);
     app._logger('has api routes', hasApi);
     if (hasApi) {
@@ -39,4 +40,7 @@ module.exports = async (app) => {
         }
     }
     app._logger('app apis registers complete');
-};
+}, {
+    name: 'api',
+    dependencies: []
+})

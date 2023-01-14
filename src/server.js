@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Fastify = require('fastify');
+const AutoLoad = require('@fastify/autoload')
 const { toFilePath, generateSecret, readJSON } = require('./utils/common');
-const appModules = require('./modules');
 
 const server = async (options = {}) => {
     const isProd = options.prod || process.env.NODE_ENV === 'production';
@@ -21,6 +21,7 @@ const server = async (options = {}) => {
     const appLogger = options.verbose ? console.debug : () => false;
     app._logger = appLogger;
     app._config = {
+        ...options,
         port: process.env.PORT || options.port || 3000,
         password: options.password || process.env.STATIKLY_PASSWORD,
         username: options.username || process.env.STATIKLY_USERNAME,
@@ -37,20 +38,14 @@ const server = async (options = {}) => {
         corsOrigin: options.corsOrigin || ['localhost'],
         context: await readJSON(options.context, rootDir),
         host: options.host ? options.host : 'localhost',
+        autoLoad: options.autoLoad || []
     };
     app._logger('app._config', app._config);
-    const { modules, corsOrigin } = app._config;
-    await app.register(require('@fastify/cors'), {
-        origin: corsOrigin,
-    });
-    await app.register(require('@fastify/helmet'));
-    await app.register(require('@fastify/routes'));
-    await app.register(require('@fastify/formbody'));
-    await app.register(require('@fastify/sensible'));
-    for await (const moduleName of modules) {
-        app._logger('loading module', moduleName);
-        await appModules[moduleName](app);
-    }
+
+    app.register(AutoLoad, {
+        dir: toFilePath("plugins", __dirname),
+        options: { config: app._config }
+    })
 
     return app;
 };

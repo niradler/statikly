@@ -106,6 +106,12 @@ module.exports = yargs(hideBin(process.argv))
                     type: 'array',
                     default: ['cache', 'session', 'views', 'api', 'public'],
                 })
+                .option('autoLoad', {
+                    describe: 'pass folder names to load plugins',
+                    alias: 'a',
+                    type: 'array',
+                    default: [],
+                })
                 .option('optionsFile', {
                     description: 'provide options file (json) instead of passing them as arguments',
                 })
@@ -138,11 +144,11 @@ module.exports = yargs(hideBin(process.argv))
     )
     .demandCommand(1, '')
     .recommendCommands()
+    .completion()
     .strict()
     .option('verbose', {
         alias: 'v',
         type: 'boolean',
         description: 'Run with verbose logging',
     })
-
     .parse();
