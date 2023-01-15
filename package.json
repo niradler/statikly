@@ -20,7 +20,7 @@
     "ui",
     "ssr",
     "static",
-    "simple"
+    "full-stack"
   ],
   "author": "Nir Adler",
   "license": "MIT",
