@@ -36,39 +36,26 @@ module.exports = yargs(hideBin(process.argv))
             return yargs
                 .option('path', {
                     describe: 'bundle path',
-                    required: true,
+                    default: "src",
                 }).option('output', {
                     alias: "out",
+                    default: "build",
                     describe: 'output path',
-                    required: true,
-                }).option('bundle', {
-                    type: 'boolean',
-                    describe: 'bundle files',
-                    default: true,
                 }).option('watch', {
                     type: 'boolean',
                     alias: "w",
                     describe: 'watch for changes',
                     default: false,
-                }).option('minify', {
-                    type: 'boolean',
-                    describe: 'minify files',
-                    default: true,
-                }).option('sourcemap', {
-                    type: 'boolean',
-                    describe: 'generate sourcemap',
-                    default: false,
-                }).option('allowOverwrite', {
-                    type: 'boolean',
-                    describe: 'allow overwrite',
-                    default: true,
+                }).option('config', {
+                    alias: "c",
+                    describe: 'configuration file path',
                 })
         },
         async (options) => {
             try {
-                if (options.verbose) console.info(options);
-                await bundle(options)
-                process.exit(0);
+                const { verbose, path, output, config } = options
+                if (verbose) console.info(options);
+                await bundle({ verbose, path, output, config })
             } catch (error) {
                 console.error(error);
                 process.exit(1);

@@ -3,30 +3,32 @@ const esbuild = require('esbuild')
 const { Router } = require('statikly-router')
 const { toFilePath } = require('./common');
 
-const bundle = async ({ path, output, watch, serve, bundle, sourcemap, minify, allowOverwrite }) => {
+const bundle = async ({ path, output, watch, config: configPath }) => {
+    if (!configPath) {
+        configPath = Path.join(__dirname, "build.config.js")
+    }
+    const getConfig = require(configPath)
+    const config = await getConfig({ path, output, watch, config: configPath });
     path = toFilePath(path)
     const outdir = toFilePath(output)
+    if (!config.entryPoints) {
+        const router = new Router({ path });
+        const files = await router.glob("**/*(*.js|*.css|*.html|*.ts|*.tsx)");
+        config.entryPoints = files.map(file => Path.join(path, file))
+    }
 
-    const router = new Router({ path });
-    const jsFiles = await router.glob("**/*(*.js|*.css)");
     const buildOptions = {
-        entryPoints: jsFiles.map(file => Path.join(path, file)),
-        bundle,
-        minify,
-        sourcemap,
-        allowOverwrite,
         outdir,
+        ...config,
     }
 
     const ctx = await esbuild.context(buildOptions)
     if (watch) {
         console.log("watching for changes", path)
         ctx.watch()
-    }
-    else if (serve) {
-        await ctx.serve({ servedir: path })
     } else {
         await esbuild.build(buildOptions)
+        process.exit(0);
     }
 }
 
