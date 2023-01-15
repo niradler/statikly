@@ -1,6 +1,6 @@
 {
   "name": "statikly",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "No hassle full stack framework",
   "main": "src/index.js",
   "bin": {
@@ -12,7 +12,9 @@
     "serve:demo": "nodemon -e js,ejs --exec \"node src/statikly.js serve --root-dir tests/demo --optionsFile statikly.json --context context.json -v\"",
     "pretest": "rimraf tests/demo && node src/statikly.js init --path tests/demo",
     "test": "jest",
-    "lint": "eslint . --ext .js --fix"
+    "lint": "eslint . --ext .js --fix",
+    "fastify": "fastify",
+    "npm-run-all": "npm-run-all"
   },
   "keywords": [
     "ui",
@@ -47,6 +49,7 @@
     "fastify": "^4.11.0",
     "fastify-cli": "^5.7.1",
     "fastify-plugin": "^4.5.0",
+    "npm-run-all": "^4.1.5",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1",
     "statikly-router": "^0.0.11",
