@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+const Path = require('path')
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const degit = require('degit');
 const server = require('./server');
-const { readJSON } = require('./utils/common');
+const { readJSON, readdir, toFilePath } = require('./utils/common');
 const { bundle } = require('./utils/bundler');
 
 module.exports = yargs(hideBin(process.argv))
@@ -66,10 +67,10 @@ module.exports = yargs(hideBin(process.argv))
         'modules',
         'list available modules',
         () => { },
-        (options) => {
+        async (options) => {
             if (options.verbose) console.info(options);
-            const modules = require('./modules');
-            console.log(JSON.stringify(Object.keys(modules), null, 2));
+            const modules = await readdir(toFilePath("modules", __dirname))
+            console.log([...modules].map(m => Path.parse(m).name).toString());
         }
     )
     .command(

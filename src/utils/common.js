@@ -16,4 +16,6 @@ const readJSON = async (path, rootDir) => (path ? JSON.parse(await fs.readFile(t
 
 const fileExists = async (path) => !!(await fs.stat(path).catch(() => false));
 
-module.exports = { toFilePath, generateSecret, readJSON, fileExists };
+const readdir = fs.readdir;
+
+module.exports = { toFilePath, generateSecret, readJSON, fileExists, readdir };
