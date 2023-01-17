@@ -2,7 +2,8 @@ const fp = require('fastify-plugin')
 const { toFilePath } = require('../utils/common');
 const { Router } = require('statikly-router')
 
-const registerViewRoute = async (app, { url, viewPath, extend = {}, hasErrorPage }) => {
+const registerViewRoute = async (app, { url, layout, viewPath, extend = {}, hasErrorPage }) => {
+
     const { actions, viewOption, loader, preHandler } = extend;
     const sessionInstalled = app._config.modules.includes('session');
     const viewRoue = {
@@ -20,7 +21,7 @@ const registerViewRoute = async (app, { url, viewPath, extend = {}, hasErrorPage
                 viewData.csrf = await reply.generateCsrf();
             }
 
-            return reply.render(viewPath, viewData, viewOption);
+            return reply.render(viewPath, viewData, viewOption || { layout });
         },
     };
 
@@ -59,7 +60,6 @@ module.exports = fp(async function (app, { config }) {
             [templateEngine]: require(templateEngine),
         },
         root: rootDir,
-        layout: layout ? layout : undefined,
         propertyName: "render",
         defaultContext: {
             context,
@@ -79,6 +79,7 @@ module.exports = fp(async function (app, { config }) {
             await registerViewRoute(app, {
                 templateEngine,
                 url,
+                layout,
                 viewPath: `views/${route.ejs.dir}/${route.ejs.base}`,
                 extend: route.js ? require(route.js.path) : {},
                 hasErrorPage,
