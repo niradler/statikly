@@ -1,5 +1,7 @@
 # statikly
 
+**Visit https://github.com/niradler/statikly-stack as this was the first draft**
+
 No hassle full stack framework, for blog/static/content sites, amazing for prototype and build internal tools and seo optimize.
 Provide alternative for writing frontend "the old way", more and more hype is growing on server side ui, like next.js and remix, I wanted to simplified it event more.
 
